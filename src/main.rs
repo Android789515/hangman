@@ -44,7 +44,7 @@ impl App {
         if event.kind == KeyEventKind::Press {
             match event.code {
                 KeyCode::Esc => {
-                    self.run = false;
+                    self.quit();
                 },
                 _ => {},
             }

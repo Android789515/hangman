@@ -6,7 +6,7 @@ pub fn select_random_word() -> String {
     let mut rng = rand::rng();
     let random_index = rand::Rng::random_range(&mut rng, 0..999);
 
-    let selected_word = fs::read_to_string(words_file)
+    fs::read_to_string(words_file)
         .unwrap()
         .split('\n')
         .enumerate()
@@ -16,9 +16,7 @@ pub fn select_random_word() -> String {
             } else {
                 selected_word
             }
-        });
-
-    selected_word
+        })
 }
 
 #[cfg(test)]
