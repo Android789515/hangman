@@ -38,6 +38,18 @@ impl App {
         self.guessed_letters.insert(guess)
     }
 
+    fn strike(&mut self) {
+        self.strikes += 1;
+    }
+
+    fn handle_guess(& mut self, guess: char) {
+        let is_wrong = !self.selected_word.contains(guess);
+
+        if is_wrong {
+            self.strike();
+        }
+    }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), Box<dyn Error>> {
         while self.run {
             terminal.draw(|frame| {
@@ -63,10 +75,10 @@ impl App {
                     self.quit();
                 },
                 KeyCode::Char(key) => {
-                    let already_guessed = self.add_guess(key);
+                    let new_guess = self.add_guess(key);
 
-                    if already_guessed {
-                        //
+                    if new_guess {
+                        self.handle_guess(key);
                     }
                 },
                 _ => {},
@@ -120,6 +132,31 @@ mod tests {
             .collect::<String>();
 
         assert_eq!(app.get_masked_word(), masked_word);
+    }
+
+    #[test]
+    fn strikes_on_incorrect_guess() {
+        let mut app = App::init();
+
+        let incorrect_letter = ('a'..='z').find(|&letter| {
+            !app.selected_word.contains(letter)
+        }).unwrap();
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(incorrect_letter), KeyModifiers::NONE)
+        );
+
+        assert_eq!(app.strikes, 1);
+
+        let incorrect_letter = ('a'..='z').rfind(|&letter| {
+            !app.selected_word.contains(letter)
+        }).unwrap();
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(incorrect_letter), KeyModifiers::NONE)
+        );
+
+        assert_eq!(app.strikes, 2);
     }
 
     #[test]
