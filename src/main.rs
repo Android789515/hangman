@@ -22,6 +22,18 @@ impl App {
         }
     }
 
+    pub fn get_masked_word(&self) -> String {
+        self.selected_word.chars()
+            .map(|letter| {
+                if self.guessed_letters.contains(&letter) {
+                    letter
+                } else {
+                    '_'
+                }
+            })
+            .collect::<String>()
+    }
+
     fn add_guess(&mut self, guess: char) -> bool {
         self.guessed_letters.insert(guess)
     }
@@ -97,6 +109,17 @@ mod tests {
         assert!(app.guessed_letters.is_empty());
         assert_eq!(app.strikes, 0);
         assert!(app.run);
+    }
+
+    #[test]
+    fn masks_selected_word() {
+        let app = App::init();
+
+        let masked_word = (0..app.get_masked_word().len())
+            .map(|_| '_')
+            .collect::<String>();
+
+        assert_eq!(app.get_masked_word(), masked_word);
     }
 
     #[test]
