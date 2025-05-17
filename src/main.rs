@@ -22,6 +22,10 @@ impl App {
         }
     }
 
+    fn add_guess(&mut self, guess: char) -> bool {
+        self.guessed_letters.insert(guess)
+    }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), Box<dyn Error>> {
         while self.run {
             terminal.draw(|frame| {
@@ -45,6 +49,13 @@ impl App {
             match event.code {
                 KeyCode::Esc => {
                     self.quit();
+                },
+                KeyCode::Char(key) => {
+                    let already_guessed = self.add_guess(key);
+
+                    if already_guessed {
+                        //
+                    }
                 },
                 _ => {},
             }
@@ -97,6 +108,34 @@ mod tests {
         );
 
         assert!(!app.run);
+    }
+
+    #[test]
+    fn does_not_add_duplicate_guess() {
+        let mut app = App::init();
+
+        let letter = 'p';
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
+        );
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.len() == 1);
+    }
+
+    #[test]
+    fn adds_guess() {
+        let mut app = App::init();
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.contains(&'c'));
     }
 
     #[test]
