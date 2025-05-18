@@ -50,6 +50,7 @@ impl App {
         if self.strikes < Self::MAX_STRIKES - 1 {
             self.strikes += 1;
         } else {
+            self.strikes += 1;
             self.set_game_state(GameOverState::Lose);
         }
     }
@@ -59,7 +60,7 @@ impl App {
     }
 
     fn should_win(&self) -> bool {
-        self.strikes < Self::MAX_STRIKES - 1
+        self.strikes < Self::MAX_STRIKES
         && self.get_masked_word() == self.selected_word
     }
 
