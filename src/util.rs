@@ -1,13 +1,10 @@
-use std::{fs, path::Path};
-
 pub fn select_random_word() -> String {
-    let words_file = Path::new("./src/words.txt");
+    let words_file = include_str!("./words.txt");
 
     let mut rng = rand::rng();
     let random_index = rand::Rng::random_range(&mut rng, 0..999);
 
-    fs::read_to_string(words_file)
-        .unwrap()
+    words_file
         .split('\n')
         .enumerate()
         .fold(String::new(), |selected_word, (index, current_word)| {
