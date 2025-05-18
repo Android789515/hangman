@@ -111,7 +111,7 @@ impl App {
                 KeyCode::Esc => {
                     self.quit();
                 },
-                KeyCode::Char(key) if key.is_alphabetic() => {
+                KeyCode::Char(key) if key.is_alphabetic() && self.game_over_state.is_none() => {
                     let new_guess = self.add_guess(key);
 
                     if new_guess {
@@ -215,6 +215,29 @@ mod tests {
         assert!(app.game_over_state.is_some_and(|state| {
             state == GameOverState::Win
         }), "The word was {} and the guesses were {:?}", app.selected_word, app.guessed_letters);
+    }
+
+    #[test]
+    fn stops_key_handling_on_game_over() {
+        let mut app = App::init();
+
+        app.game_over_state = Some(GameOverState::Win);
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.is_empty());
+
+        let mut app = App::init();
+
+        app.game_over_state = Some(GameOverState::Lose);
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.is_empty());
     }
 
     #[test]
