@@ -144,6 +144,34 @@ mod tests {
     }
 
     #[test]
+    fn does_not_add_duplicate_guess() {
+        let mut app = App::init();
+
+        let letter = 'p';
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
+        );
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.len() == 1);
+    }
+
+    #[test]
+    fn adds_guess() {
+        let mut app = App::init();
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.contains(&'c'));
+    }
+
+    #[test]
     fn game_over_when_strikeout() {
         let mut app = App::init();
 
@@ -222,34 +250,6 @@ mod tests {
         );
 
         assert!(!app.run);
-    }
-
-    #[test]
-    fn does_not_add_duplicate_guess() {
-        let mut app = App::init();
-
-        let letter = 'p';
-
-        app.handle_keypress(
-            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
-        );
-
-        app.handle_keypress(
-            KeyEvent::new(KeyCode::Char(letter), KeyModifiers::NONE)
-        );
-
-        assert!(app.guessed_letters.len() == 1);
-    }
-
-    #[test]
-    fn adds_guess() {
-        let mut app = App::init();
-
-        app.handle_keypress(
-            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE)
-        );
-
-        assert!(app.guessed_letters.contains(&'c'));
     }
 
     #[test]
