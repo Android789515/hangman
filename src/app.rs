@@ -95,8 +95,15 @@ impl App {
     pub fn draw(&self, frame: &mut Frame) {
         let app_title = Line::from(" Hangman ".bold());
 
+        let controls = Line::from(
+            Vec::from([
+                " <Esc> Quit ".into(),
+            ])
+        );
+
         let app_block = Block::bordered()
             .title(app_title.centered())
+            .title_bottom(controls.centered().bold())
             .border_set(border::ROUNDED);
 
         frame.render_widget(app_block, frame.area());
