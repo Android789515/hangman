@@ -1,6 +1,6 @@
 use std::{collections::HashSet, error::Error};
 
-use ratatui::{buffer::Buffer, crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Direction, Layout, Rect}, style::Stylize, symbols::border, text::Line, widgets::{Block, Widget}, DefaultTerminal, Frame};
+use ratatui::{crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout}, style::Stylize, symbols::border, text::Line, widgets::{Block}, DefaultTerminal, Frame};
 
 use super::util::select_random_word;
 
