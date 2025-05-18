@@ -110,7 +110,7 @@ impl App {
                 KeyCode::Esc => {
                     self.quit();
                 },
-                KeyCode::Char(key) => {
+                KeyCode::Char(key) if key.is_alphabetic() => {
                     let new_guess = self.add_guess(key);
 
                     if new_guess {
@@ -169,6 +169,17 @@ mod tests {
         );
 
         assert!(app.guessed_letters.contains(&'c'));
+    }
+
+    #[test]
+    fn only_add_letter_guess() {
+        let mut app = App::init();
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char(';'), KeyModifiers::NONE)
+        );
+
+        assert!(app.guessed_letters.is_empty());
     }
 
     #[test]
