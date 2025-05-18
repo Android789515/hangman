@@ -1,5 +1,6 @@
 mod util;
 mod app;
+mod figure;
 
 use std::error::Error;
 
