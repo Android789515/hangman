@@ -1,6 +1,8 @@
 use std::{collections::HashSet, error::Error};
 
-use ratatui::{crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout}, style::Stylize, symbols::border, text::Line, widgets::{Block}, DefaultTerminal, Frame};
+use ratatui::{crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout}, style::Stylize, symbols::border, text::Line, widgets::{Block, Paragraph}, DefaultTerminal, Frame};
+
+use crate::figure::Figure;
 
 use super::util::select_random_word;
 
@@ -99,10 +101,43 @@ impl App {
 
         frame.render_widget(app_block, frame.area());
 
-        let [ figure, data ] = Layout::horizontal([
-            Constraint::Percentage(70),
-            Constraint::Percentage(30)
-        ]).areas(frame.area());
+        let [ figure_area, game_info_area ] = Layout::horizontal([
+            Constraint::Length(50),
+            Constraint::Fill(1),
+        ])
+            .horizontal_margin(6)
+            .vertical_margin(5)
+            .areas(frame.area());
+
+        let figure = Paragraph::new(Figure::get_state(self.strikes as usize));
+
+        frame.render_widget(figure, figure_area);
+
+        if let Some(game_over_state) = &self.game_over_state {
+            let text = match game_over_state {
+                GameOverState::Win => String::from("You Won!"),
+                GameOverState::Lose => String::from("You have lost!"),
+            }
+                + &format!("  The word was {}", self.selected_word);
+
+            frame.render_widget(
+                Paragraph::new(text),
+                game_info_area,
+            );
+        } else {
+            let [ word_area, guessed_letters_area ] = Layout::vertical([
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
+            ]).areas(game_info_area);
+    
+            let word = Paragraph::new(self.get_masked_word());
+            let guessed_letters = Paragraph::new(
+                self.guessed_letters.iter().collect::<String>()
+            );
+    
+            frame.render_widget(word, word_area);
+            frame.render_widget(guessed_letters, guessed_letters_area);
+        }
     }
 
     pub fn handle_keypress(&mut self, event: KeyEvent) {
