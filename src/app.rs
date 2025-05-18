@@ -127,11 +127,6 @@ impl App {
     }
 }
 
-impl Widget for &App {
-    fn render(self, layout: Rect, buffer: &mut Buffer) {
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use ratatui::crossterm::event::KeyModifiers;
