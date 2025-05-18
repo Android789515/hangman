@@ -1,14 +1,21 @@
 use std::{collections::HashSet, error::Error};
 
-use ratatui::{buffer::Buffer, crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::Rect, widgets::Widget, DefaultTerminal, Frame};
+use ratatui::{buffer::Buffer, crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Direction, Layout, Rect}, style::Stylize, symbols::border, text::Line, widgets::{Block, Widget}, DefaultTerminal, Frame};
 
 use super::util::select_random_word;
+
+#[derive(PartialEq)]
+enum GameOverState {
+    Win,
+    Lose,
+}
 
 pub struct App {
     selected_word: String,
     guessed_letters: HashSet<char>,
     strikes: u8,
     run: bool,
+    game_over_state: Option<GameOverState>,
 }
 
 impl App {
@@ -18,6 +25,7 @@ impl App {
             guessed_letters: HashSet::new(),
             strikes: 0,
             run: true,
+            game_over_state: None,
         }
     }
 
@@ -37,14 +45,32 @@ impl App {
         self.guessed_letters.insert(guess)
     }
 
+    pub const MAX_STRIKES: u8 = 6;
     fn strike(&mut self) {
-        self.strikes += 1;
+        if self.strikes < Self::MAX_STRIKES - 1 {
+            self.strikes += 1;
+        } else {
+            self.set_game_state(GameOverState::Lose);
+        }
+    }
+
+    fn set_game_state(&mut self, state: GameOverState) {
+        self.game_over_state = Some(state);
+    }
+
+    fn should_win(&self) -> bool {
+        self.strikes < Self::MAX_STRIKES - 1
+        && self.get_masked_word() == self.selected_word
     }
 
     fn handle_guess(& mut self, guess: char) {
-        let is_wrong = !self.selected_word.contains(guess);
+        let is_correct = self.selected_word.contains(guess);
 
-        if is_wrong {
+        if is_correct {
+            if self.should_win() {
+                self.set_game_state(GameOverState::Win);
+            }
+        } else {
             self.strike();
         }
     }
@@ -64,7 +90,18 @@ impl App {
     }
 
     pub fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
+        let app_title = Line::from(" Hangman ".bold());
+
+        let app_block = Block::bordered()
+            .title(app_title.centered())
+            .border_set(border::ROUNDED);
+
+        frame.render_widget(app_block, frame.area());
+
+        let [ figure, data ] = Layout::horizontal([
+            Constraint::Percentage(70),
+            Constraint::Percentage(30)
+        ]).areas(frame.area());
     }
 
     pub fn handle_keypress(&mut self, event: KeyEvent) {
@@ -109,6 +146,40 @@ mod tests {
         assert!(app.guessed_letters.is_empty());
         assert_eq!(app.strikes, 0);
         assert!(app.run);
+    }
+
+    #[test]
+    fn game_over_when_strikeout() {
+        let mut app = App::init();
+
+        (0..App::MAX_STRIKES).for_each(|_| {
+            app.strike();
+        });
+
+        assert!(app.game_over_state.is_some_and(|state| {
+            state == GameOverState::Lose
+        }), "Strikes were {}", app.strikes);
+    }
+
+    #[test]
+    fn wins_when_all_letters_guessed() {
+        let mut app = App::init();
+
+        app.selected_word = String::from("the");
+
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('t'), KeyModifiers::NONE)
+        );
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('h'), KeyModifiers::NONE)
+        );
+        app.handle_keypress(
+            KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE)
+        );
+
+        assert!(app.game_over_state.is_some_and(|state| {
+            state == GameOverState::Win
+        }), "The word was {} and the guesses were {:?}", app.selected_word, app.guessed_letters);
     }
 
     #[test]
