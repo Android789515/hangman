@@ -16,16 +16,22 @@ pub struct App {
     selected_word: String,
     guessed_letters: HashSet<char>,
     strikes: u8,
+    grace: u8,
     run: bool,
     game_over_state: Option<GameOverState>,
 }
 
 impl App {
     pub fn init() -> Self {
+        Self::init_with_grace(Self::MAX_GRACE)
+    }
+
+    pub fn init_with_grace(grace: u8) -> Self {
         Self {
             selected_word: select_random_word(),
             guessed_letters: HashSet::new(),
             strikes: 0,
+            grace,
             run: true,
             game_over_state: None,
         }
@@ -48,11 +54,17 @@ impl App {
     }
 
     pub const MAX_STRIKES: u8 = 6;
+    pub const MAX_GRACE: u8 = 3;
     fn strike(&mut self) {
-        if self.strikes < Self::MAX_STRIKES - 1 {
-            self.strikes += 1;
+        let should_be_graceful = self.grace > 0 && rand::random_bool(1.0 / 2.0);
+
+        if should_be_graceful {
+            self.grace -= 1;
         } else {
             self.strikes += 1;
+        }
+
+        if self.strikes == Self::MAX_STRIKES {
             self.set_game_state(GameOverState::Lose);
         }
     }
@@ -227,12 +239,13 @@ mod tests {
 
     #[test]
     fn game_over_when_strikeout() {
-        let mut app = App::init();
+        let mut app = App::init_with_grace(0);
 
         (0..App::MAX_STRIKES).for_each(|_| {
             app.strike();
         });
 
+        assert_eq!(app.strikes, 6);
         assert!(app.game_over_state.is_some_and(|state| {
             state == GameOverState::Lose
         }), "Strikes were {}", app.strikes);
@@ -295,7 +308,7 @@ mod tests {
 
     #[test]
     fn strikes_on_incorrect_guess() {
-        let mut app = App::init();
+        let mut app = App::init_with_grace(0);
 
         let incorrect_letter = ('a'..='z').find(|&letter| {
             !app.selected_word.contains(letter)
